@@ -9,46 +9,48 @@ import (
 )
 
 var (
-	network  = "tcp"
 	hostname = "localhost"
 	timeout  = 60 * time.Second
 )
 
 // ScanPorts - checks all network ports and reports the ones in use
-func ScanPorts(start int, end int) {
+func ScanPorts(start int, end int, protocol string) {
 	for i := start; i < end; i++ {
-		isClosed := ScanPort(network, hostname, i, timeout)
+		isOpen := ScanPort(protocol, hostname, i, timeout)
 
-		if isClosed {
+		if isOpen {
 			log.Printf("port '%d' is in use", i)
 		}
 	}
 }
 
 // ScanPort - checks if a port is currently in use
-func ScanPort(network string, hostname string, port int, timeout time.Duration) bool {
+func ScanPort(protocol string, hostname string, port int, timeout time.Duration) bool {
 	addr := fmt.Sprintf("%s:%d", hostname, port)
-	conn, err := net.DialTimeout(network, addr, timeout)
+	conn, err := net.DialTimeout(protocol, addr, timeout)
 
 	if err != nil {
 		return false
 	}
 
-	defer conn.Close()
+	if conn != nil {
+		defer conn.Close()
+		return true
+	}
 
-	return true
+	return false
 }
 
 // {int} p - number of processes
 // {int} r - number of goroutines
 
 // LaunchGoroutines - starts a number of goroutines indicated by <r> to run concurrent processes
-func LaunchGoroutines(p, r int, f func(int, int), wg *sync.WaitGroup) {
+func LaunchGoroutines(p, r int, f func(int, int, string), protocol string, wg *sync.WaitGroup) {
 	for i := r; i < p; i += r {
 		wg.Add(1)
 
 		go func(nextIndex int) {
-			f(nextIndex-100, nextIndex)
+			f(nextIndex-100, nextIndex, protocol)
 			wg.Done()
 		}(i)
 
