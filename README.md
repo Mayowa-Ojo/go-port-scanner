@@ -6,7 +6,7 @@ scan tcp/udp network ports to check status [open/unavailable/in-use]
 
 #### Benchmark test :watch:
 
-```json
+```txt
 --> scanning 65000 ports in a single process
 Duration: 3.6s <avg>
 
